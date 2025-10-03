@@ -4,3 +4,4 @@ __pychache__/
 *.pgn
 *.json
 *.csv
+engine/bin/stockfish.exe
