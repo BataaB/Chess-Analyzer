@@ -4,11 +4,17 @@ import json
 import time
 import chess.pgn
 from classifier.move_classifier import analyze_accuracy
+from utils.print_summary import print_summary
+from utils.opening_tree import detect_opening
 
 with open("config/settings.json", "r") as config_file:
     config = json.load(config_file)
+    engine_path = os.path.abspath(config["engine_path"])
+    depth = config.get("engine_depth", 15)
+    cutoffs = config.get("phase_cutoffs", {"opening": 12, "middlegame": 30})
     cutoffs = config.get("phase_cutoffs", {"opening": 12, "middlegame": 30})
     thresholds = config.get("thresholds", {"Best": 20, "Inaccuracy": 50, "Mistake": 100})
+    opening_capacity = config.get("opening_capcity", 4)
 
 def extract_game_info(pgn_path):
     with open(pgn_path, "r") as pgn_file:
@@ -31,32 +37,8 @@ def extract_game_info(pgn_path):
             "white": {"player": white_player, "result": white_result},
             "black": {"player": black_player, "result": black_result}
         }
-
-def save_to_json(data, output_path="output/game_summary.json"):
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w") as json_file:
-        json.dump(data, json_file, indent=4)
-
-def analyze_game(pgn_path):
-    # Load basic info
-    summary = extract_game_info(pgn_path)
-
-    # Load configuration info
-    engine_path = os.path.abspath(config["engine_path"])
-    depth = config.get("engine_depth", 15)
-    cutoffs = config.get("phase_cutoffs", {"opening": 12, "middlegame": 30})
-
-    # Process accuracy of moves
-    print(f"🔍 Starting analysis for: {os.path.basename(pgn_path)}")
-    start_time = time.time()
-    accuracy = analyze_accuracy(
-        pgn_path,
-        engine_path=engine_path,
-        depth=depth,
-        cutoffs=cutoffs,
-        thresholds=thresholds
-    )
-
+    
+def summarize_accuracies(accuracy, summary):
     # Summarize the move accuracies
     for color in ["white", "black"]:
         overall = accuracy[color]["overall"]
@@ -78,6 +60,36 @@ def analyze_game(pgn_path):
         summary[color]["accuracy"] = overall
         summary[color]["accuracy_percent"] = accuracy_percent
         summary[color]["phase_accuracy"] = phase_accuracy_percent
+
+    return summary
+
+def save_to_json(data, output_path="output/game_summary.json"):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w") as json_file:
+        json.dump(data, json_file, indent=4)
+
+def analyze_game(pgn_path):
+    # Load basic info
+    summary = extract_game_info(pgn_path)
+
+
+    # Process accuracy of moves
+    print(f"🔍 Starting analysis for: {os.path.basename(pgn_path)}")
+    start_time = time.time()
+    accuracy = analyze_accuracy(
+        pgn_path,
+        engine_path=engine_path,
+        depth=depth,
+        cutoffs=cutoffs,
+        thresholds=thresholds
+    )
+    
+    # Get opening
+    opening = detect_opening(pgn_path)
+    summary["opening"] = opening if opening != None else "Unknown"
+    
+    summary = summarize_accuracies(accuracy=accuracy, summary=summary)
+    print_summary(summary)
 
     # Save the result
     save_to_json(summary)

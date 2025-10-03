@@ -28,7 +28,7 @@ def classify_phase(move_number, cutoffs):
     else:
         return "endgame"
 
-def analyze_accuracy(pgn_path, engine_path="stockfish", depth=15, cutoffs=None, thresholds=None):
+def analyze_accuracy(pgn_path, engine_path="./engine/bin/stockfish.exe", depth=15, cutoffs=None, thresholds=None):
     if cutoffs is None:
         cutoffs = {"opening": 12, "middlegame": 30}
 

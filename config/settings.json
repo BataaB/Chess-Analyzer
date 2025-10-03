@@ -1,0 +1,14 @@
+{
+  "engine_path": "./engine/bin/stockfish.exe",
+  "engine_depth": 15,
+  "phase_cutoffs": {
+    "opening": 12,
+    "middlegame": 30
+  },
+  "thresholds": {
+    "Best": 20,
+    "Inaccuracy": 50,
+    "Mistake": 100
+  },
+  "opening_capacity": 8
+}

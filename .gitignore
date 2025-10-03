@@ -2,6 +2,6 @@ venv/
 players/
 __pychache__/
 *.pgn
-*.json
+output/
 *.csv
 engine/bin/stockfish.exe
