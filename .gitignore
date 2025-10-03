@@ -1,0 +1,6 @@
+venv/
+players/
+__pychache__/
+*.pgn
+*.json
+*.csv
